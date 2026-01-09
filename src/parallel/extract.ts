@@ -28,10 +28,13 @@ export function runExtracts(
       return yield* Effect.fail(new Error("No URLs provided. Provide URLs as arguments or use --stdin"));
     }
 
+    // Default to excerpts if neither is requested
+    const useExcerpts = excerpts || !fullContent;
+    
     const requests: ExtractRequest[] = allUrls.map((url) => ({
       urls: [url],
       objective: Option.isSome(objective) ? objective.value : undefined,
-      excerpts,
+      excerpts: useExcerpts,
       full_content: fullContent,
     }));
 

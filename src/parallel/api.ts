@@ -48,6 +48,8 @@ function makeRequest<T>(endpoint: string, body: unknown): Effect.Effect<T, CliEr
         message = "Invalid API key. Check your key with 'parallel config get-key'";
       } else if (response.status === 402) {
         message = "Insufficient credits. Add credits at https://platform.parallel.ai";
+      } else if (response.status === 422) {
+        message = `Validation error: ${text}`;
       } else if (response.status === 429) {
         message = "Rate limit exceeded. Try again later.";
       }

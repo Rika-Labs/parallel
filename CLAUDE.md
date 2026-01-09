@@ -3,15 +3,38 @@
 **Repository:** [Rika-Labs/parallel](https://github.com/Rika-Labs/parallel)
 
 ## Overview
-A Unix-friendly CLI for the Parallel Search and Extract APIs, built with Bun, Effect TS, and Oxlint.
+A Unix-friendly CLI for the [Parallel](https://parallel.ai/) Search and Extract APIs.
+
+## Tech Stack
+- **Runtime**: Bun
+- **Core**: Effect TS, @effect/cli
+- **Linting**: Oxlint
+- **Git Hooks**: Husky + lint-staged
 
 ## Commands
 - `bun run dev -- <args>` - Run CLI in development
 - `bun run lint` - Lint with Oxlint (strict config)
-- `bun run typecheck` - TypeScript strict mode check
 - `bun test` - Run tests
 - `bun test --coverage` - Run tests with coverage (target: 90%+)
 - `bun run build` - Build for production
+
+## CLI Usage
+
+All inputs use explicit flags:
+
+```bash
+# Search
+parallel search --query "your search query" --mode agentic --max-results 10
+parallel search --query "query 1" --query "query 2" --concurrency 2
+
+# Extract
+parallel extract --url https://example.com --objective "Find pricing"
+parallel extract --url https://a.com --url https://b.com --format text
+
+# Config
+parallel config set-key --key <api-key>
+parallel config get-key
+```
 
 ## Code Standards
 
@@ -55,18 +78,20 @@ src/
 test/           # Tests mirror src structure
 ```
 
-## CLI Usage
+## Commit Convention
 
-**Important**: Options must come before positional arguments.
+Uses [Conventional Commits](https://www.conventionalcommits.org/) for automatic releases:
 
 ```bash
-# ✓ Correct
-parallel search --mode agentic "query"
-parallel extract --objective "goal" https://example.com
-
-# ✗ Incorrect - options after positional args won't work
-parallel search "query" --mode agentic
+feat: ...     # Minor release (0.x.0)
+fix: ...      # Patch release (0.0.x)
+perf: ...     # Patch release (0.0.x)
+feat!: ...    # Major release (breaking change)
+docs: ...     # No release
+chore: ...    # No release
 ```
 
+Commits are validated by commitlint via Husky.
+
 ## API Key
-Set via: `parallel config set-key <key>` or `PARALLEL_API_KEY` env var
+Set via: `parallel config set-key --key <key>` or `PARALLEL_API_KEY` env var

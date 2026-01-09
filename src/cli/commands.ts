@@ -1,12 +1,14 @@
-import { Args, Command, Options } from "@effect/cli";
+import { Command, Options } from "@effect/cli";
 import { Array, Option } from "effect";
 import { runConfigCommand } from "../commands/config.js";
 import { runSearchCommand } from "../commands/search.js";
 import { runExtractCommand } from "../commands/extract.js";
 
 const configSetKey = Command.make("set-key", {
-  args: Args.text({ name: "key" }),
-}, ({ args }) => runConfigCommand({ _tag: "Config", action: "set-key", key: args }));
+  options: {
+    key: Options.text("key"),
+  },
+}, ({ options }) => runConfigCommand({ _tag: "Config", action: "set-key", key: options.key }));
 
 const configGetKey = Command.make("get-key", {}, () => runConfigCommand({ _tag: "Config", action: "get-key" }));
 
@@ -18,13 +20,14 @@ const config = Command.make("config").pipe(
   Command.withSubcommands([configSetKey, configGetKey, configUnsetKey, configPath]),
 );
 
+// Search options
+const searchQuery = Options.text("query").pipe(
+  Options.repeated,
+);
+
 const searchMode = Options.choice("mode", ["one-shot", "agentic"] as const).pipe(
   Options.withDefault("one-shot" as const),
 );
-
-const searchObjective = Options.text("objective").pipe(Options.optional);
-
-const searchQuery = Options.text("query").pipe(Options.optional);
 
 const searchMaxResults = Options.integer("max-results").pipe(
   Options.withDefault(10),
@@ -47,11 +50,9 @@ const searchPretty = Options.boolean("pretty").pipe(Options.withDefault(false));
 const searchStdin = Options.boolean("stdin").pipe(Options.withDefault(false));
 
 const search = Command.make("search", {
-  args: Args.text({ name: "objective" }).pipe(Args.optional),
   options: {
-    mode: searchMode,
-    objective: searchObjective,
     query: searchQuery,
+    mode: searchMode,
     maxResults: searchMaxResults,
     excerptChars: searchExcerptChars,
     concurrency: searchConcurrency,
@@ -59,18 +60,14 @@ const search = Command.make("search", {
     pretty: searchPretty,
     stdin: searchStdin,
   },
-}, ({ args, options }) => {
-  const objectives: string[] = [];
-  if (Option.isSome(args)) objectives.push(args.value);
-  if (Option.isSome(options.objective)) objectives.push(options.objective.value);
-  const queries: string[] = [];
-  if (Option.isSome(options.query)) queries.push(options.query.value);
+}, ({ options }) => {
+  const queries = Array.fromIterable(options.query);
 
   return runSearchCommand({
-    objectives,
+    objectives: queries,
     stdin: options.stdin,
     mode: options.mode,
-    queries,
+    queries: [],
     maxResults: options.maxResults,
     excerptChars: options.excerptChars,
     concurrency: options.concurrency,
@@ -78,6 +75,11 @@ const search = Command.make("search", {
     pretty: options.pretty,
   });
 });
+
+// Extract options
+const extractUrl = Options.text("url").pipe(
+  Options.repeated,
+);
 
 const extractObjective = Options.text("objective").pipe(Options.optional);
 
@@ -96,8 +98,8 @@ const extractPretty = Options.boolean("pretty").pipe(Options.withDefault(false))
 const extractStdin = Options.boolean("stdin").pipe(Options.withDefault(false));
 
 const extract = Command.make("extract", {
-  args: Args.text({ name: "url" }).pipe(Args.repeated),
   options: {
+    url: extractUrl,
     objective: extractObjective,
     excerpts: extractExcerpts,
     fullContent: extractFullContent,
@@ -106,8 +108,8 @@ const extract = Command.make("extract", {
     pretty: extractPretty,
     stdin: extractStdin,
   },
-}, ({ args, options }) => {
-  const urls = Array.fromIterable(args);
+}, ({ options }) => {
+  const urls = Array.fromIterable(options.url);
   return runExtractCommand({
     urls,
     stdin: options.stdin,

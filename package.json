@@ -2,6 +2,14 @@
   "name": "@rika-labs/parallel-cli",
   "version": "0.1.0",
   "description": "A Unix-friendly CLI for the Parallel Search and Extract APIs",
+  "keywords": [
+    "parallel",
+    "search",
+    "extract",
+    "cli",
+    "semantic-search",
+    "effect-ts"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Rika-Labs/parallel.git"
@@ -11,13 +19,17 @@
     "url": "https://github.com/Rika-Labs/parallel/issues"
   },
   "author": "Rika Labs",
-  "module": "src/index.ts",
-  "type": "module",
   "license": "MIT",
-  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
   "bin": {
     "parallel": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "dev": "bun run src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
@@ -27,6 +39,8 @@
     "prepare": "husky"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.3.1",
     "@types/bun": "latest",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",

@@ -67,4 +67,4 @@ cat urls.txt | parallel extract --stdin --concurrency 10
 
 ---
 
-[Contributing](CONTRIBUTING.md) · [License](LICENSE)
+[Contributing](CONTRIBUTING.md) · [MIT License](LICENSE)

@@ -8,15 +8,11 @@ A Unix-friendly CLI for the [Parallel](https://parallel.ai/) Search and Extract 
 
 Semantic search and content extraction that understands intent, not just keywords — right from your terminal.
 
-<br>
-
 ## Install
 
 ```bash
 bun install -g @rikalabs/parallel
 ```
-
-<br>
 
 ## Setup
 
@@ -25,8 +21,6 @@ Get your API key at [parallel.ai](https://parallel.ai), then:
 ```bash
 parallel config set-key --key <your-key>
 ```
-
-<br>
 
 ## Search
 
@@ -40,8 +34,6 @@ With agentic reasoning:
 parallel search --query "compare React vs Vue" --mode agentic
 ```
 
-<br>
-
 ## Extract
 
 ```bash
@@ -54,8 +46,6 @@ With a specific objective:
 parallel extract --url https://example.com --objective "find pricing"
 ```
 
-<br>
-
 ## Batch Processing
 
 ```bash
@@ -66,8 +56,6 @@ parallel search --query "topic 1" --query "topic 2" --concurrency 5
 cat urls.txt | parallel extract --stdin --concurrency 10
 ```
 
-<br>
-
 ## Options
 
 ```
@@ -76,8 +64,6 @@ cat urls.txt | parallel extract --stdin --concurrency 10
 --max-results N       Number of results (default: 10)
 --concurrency N       Parallel requests (default: 5)
 ```
-
-<br>
 
 ---
 

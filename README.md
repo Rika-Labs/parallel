@@ -1,6 +1,12 @@
 # Parallel CLI
 
-A semantic search and extraction tool for your terminal.
+[![npm](https://img.shields.io/npm/v/@rikalabs/parallel.svg)](https://www.npmjs.com/package/@rikalabs/parallel)
+[![CI](https://github.com/Rika-Labs/parallel/actions/workflows/ci.yml/badge.svg)](https://github.com/Rika-Labs/parallel/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A Unix-friendly CLI for the [Parallel](https://parallel.ai/) Search and Extract APIs.
+
+Semantic search and content extraction that understands intent, not just keywords — right from your terminal.
 
 <br>
 

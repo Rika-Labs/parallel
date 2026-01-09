@@ -65,6 +65,8 @@ cat urls.txt | parallel extract --stdin --concurrency 10
 --concurrency N       Parallel requests (default: 5)
 ```
 
+Run `parallel --help` for full documentation.
+
 ---
 
 [Contributing](CONTRIBUTING.md) · [MIT License](LICENSE)

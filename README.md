@@ -1,6 +1,6 @@
 # Parallel CLI
 
-[![npm](https://img.shields.io/npm/v/@rika-labs/parallel-cli.svg)](https://www.npmjs.com/package/@rika-labs/parallel-cli)
+[![npm](https://img.shields.io/npm/v/@rika-labs/parallel.svg)](https://www.npmjs.com/package/@rika-labs/parallel)
 [![GitHub](https://img.shields.io/badge/GitHub-Rika--Labs%2Fparallel-black.svg)](https://github.com/Rika-Labs/parallel)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/Rika-Labs/parallel/actions/workflows/ci.yml/badge.svg)](https://github.com/Rika-Labs/parallel/actions/workflows/ci.yml)
@@ -32,14 +32,10 @@ parallel extract --url https://docs.parallel.ai/home --objective "Find pricing"
 
 ## Installation
 
-### Via npm (recommended)
+### Via bun (recommended)
 
 ```bash
-# Install globally
-npm install -g @rika-labs/parallel-cli
-
-# Or with bun
-bun install -g @rika-labs/parallel-cli
+bun install -g @rika-labs/parallel
 ```
 
 ### From source

@@ -20,7 +20,6 @@ const config = Command.make("config").pipe(
 
 const searchMode = Options.choice("mode", ["one-shot", "agentic"] as const).pipe(
   Options.withDefault("one-shot" as const),
-  Options.optional,
 );
 
 const searchObjective = Options.text("objective").pipe(Options.optional);
@@ -29,27 +28,23 @@ const searchQuery = Options.text("query").pipe(Options.optional);
 
 const searchMaxResults = Options.integer("max-results").pipe(
   Options.withDefault(10),
-  Options.optional,
 );
 
 const searchExcerptChars = Options.integer("excerpt-chars").pipe(
   Options.withDefault(6000),
-  Options.optional,
 );
 
 const searchConcurrency = Options.integer("concurrency").pipe(
   Options.withDefault(5),
-  Options.optional,
 );
 
 const searchFormat = Options.choice("format", ["json", "text"] as const).pipe(
   Options.withDefault("json" as const),
-  Options.optional,
 );
 
-const searchPretty = Options.boolean("pretty").pipe(Options.withDefault(false), Options.optional);
+const searchPretty = Options.boolean("pretty").pipe(Options.withDefault(false));
 
-const searchStdin = Options.boolean("stdin").pipe(Options.withDefault(false), Options.optional);
+const searchStdin = Options.boolean("stdin").pipe(Options.withDefault(false));
 
 const search = Command.make("search", {
   args: Args.text({ name: "objective" }).pipe(Args.optional),
@@ -73,36 +68,32 @@ const search = Command.make("search", {
 
   return runSearchCommand({
     objectives,
-    stdin: Option.getOrElse(options.stdin, () => false),
-    mode: Option.getOrElse(options.mode, () => "one-shot"),
+    stdin: options.stdin,
+    mode: options.mode,
     queries,
-    maxResults: Option.getOrElse(options.maxResults, () => 10),
-    excerptChars: Option.getOrElse(options.excerptChars, () => 6000),
-    concurrency: Option.getOrElse(options.concurrency, () => 5),
-    format: Option.getOrElse(options.format, () => "json"),
-    pretty: Option.getOrElse(options.pretty, () => false),
+    maxResults: options.maxResults,
+    excerptChars: options.excerptChars,
+    concurrency: options.concurrency,
+    format: options.format,
+    pretty: options.pretty,
   });
 });
 
 const extractObjective = Options.text("objective").pipe(Options.optional);
 
-const extractExcerpts = Options.boolean("excerpts").pipe(Options.withDefault(true), Options.optional);
+const extractExcerpts = Options.boolean("excerpts").pipe(Options.withDefault(true));
 
-const extractFullContent = Options.boolean("full-content").pipe(Options.withDefault(false), Options.optional);
+const extractFullContent = Options.boolean("full-content").pipe(Options.withDefault(false));
 
-const extractConcurrency = Options.integer("concurrency").pipe(
-  Options.withDefault(5),
-  Options.optional,
-);
+const extractConcurrency = Options.integer("concurrency").pipe(Options.withDefault(5));
 
 const extractFormat = Options.choice("format", ["json", "text"] as const).pipe(
   Options.withDefault("json" as const),
-  Options.optional,
 );
 
-const extractPretty = Options.boolean("pretty").pipe(Options.withDefault(false), Options.optional);
+const extractPretty = Options.boolean("pretty").pipe(Options.withDefault(false));
 
-const extractStdin = Options.boolean("stdin").pipe(Options.withDefault(false), Options.optional);
+const extractStdin = Options.boolean("stdin").pipe(Options.withDefault(false));
 
 const extract = Command.make("extract", {
   args: Args.text({ name: "url" }).pipe(Args.repeated),
@@ -117,16 +108,15 @@ const extract = Command.make("extract", {
   },
 }, ({ args, options }) => {
   const urls = Array.fromIterable(args);
-  const noExcerpts = Option.isSome(options.excerpts) && !options.excerpts.value;
   return runExtractCommand({
     urls,
-    stdin: Option.getOrElse(options.stdin, () => false),
+    stdin: options.stdin,
     objective: Option.isSome(options.objective) ? Option.some(options.objective.value) : Option.none(),
-    excerpts: !noExcerpts,
-    fullContent: Option.getOrElse(options.fullContent, () => false),
-    concurrency: Option.getOrElse(options.concurrency, () => 5),
-    format: Option.getOrElse(options.format, () => "json"),
-    pretty: Option.getOrElse(options.pretty, () => false),
+    excerpts: options.excerpts,
+    fullContent: options.fullContent,
+    concurrency: options.concurrency,
+    format: options.format,
+    pretty: options.pretty,
   });
 });
 

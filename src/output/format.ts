@@ -16,7 +16,7 @@ export function formatSearchResponse(response: SearchResponse, format: "json" | 
     if (result.excerpts.length > 0) {
       lines.push(`Excerpts:`);
       for (const excerpt of result.excerpts) {
-        lines.push(`  ${excerpt.substring(0, 200)}...`);
+        lines.push(`  ${excerpt}`);
       }
     }
     lines.push("");
@@ -51,11 +51,12 @@ export function formatExtractResponse(response: ExtractResponse, format: "json" 
     if (result.excerpts && result.excerpts.length > 0) {
       lines.push(`Excerpts:`);
       for (const excerpt of result.excerpts) {
-        lines.push(`  ${excerpt.substring(0, 200)}...`);
+        lines.push(`  ${excerpt}`);
       }
     }
     if (result.full_content) {
-      lines.push(`Full Content: ${result.full_content.length} characters`);
+      lines.push(`Full Content:`);
+      lines.push(result.full_content);
     }
     lines.push("");
   }

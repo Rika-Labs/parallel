@@ -55,5 +55,18 @@ src/
 test/           # Tests mirror src structure
 ```
 
+## CLI Usage
+
+**Important**: Options must come before positional arguments.
+
+```bash
+# ✓ Correct
+parallel search --mode agentic "query"
+parallel extract --objective "goal" https://example.com
+
+# ✗ Incorrect - options after positional args won't work
+parallel search "query" --mode agentic
+```
+
 ## API Key
 Set via: `parallel config set-key <key>` or `PARALLEL_API_KEY` env var

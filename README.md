@@ -25,9 +25,11 @@ parallel config set-key <your-key>
 # Search
 parallel search "What is declarative semantic search?"
 
-# Extract
-parallel extract https://docs.parallel.ai/home --objective "Find pricing"
+# Extract (options before URLs)
+parallel extract --objective "Find pricing" https://docs.parallel.ai/home
 ```
+
+> **Note**: Options must come before positional arguments (query/URLs).
 
 ## Installation
 
@@ -65,37 +67,44 @@ export PARALLEL_API_KEY=<key>
 
 ### Search
 
+Options must come **before** the query argument.
+
 ```bash
 # Basic search
 parallel search "Effect TS best practices"
 
 # Agentic mode (multi-step reasoning)
-parallel search "Compare React and Vue" --mode agentic
+parallel search --mode agentic "Compare React and Vue"
 
 # Control results
-parallel search "TypeScript tips" --max-results 20 --excerpt-chars 3000
+parallel search --max-results 20 --excerpt-chars 3000 "TypeScript tips"
 
 # Text format output
-parallel search "Bun runtime" --format text
+parallel search --format text "Bun runtime"
 
 # Pretty JSON
-parallel search "Effect TS examples" --pretty
+parallel search --pretty "Effect TS examples"
+
+# Combined options
+parallel search --mode agentic --max-results 5 --format text "AI trends 2024"
 ```
 
 ### Extract
+
+Options must come **before** the URL arguments.
 
 ```bash
 # Extract from URL
 parallel extract https://example.com
 
 # With objective
-parallel extract https://docs.effect.website --objective "Find error handling patterns"
+parallel extract --objective "Find error handling patterns" https://docs.effect.website
 
 # Full content extraction
-parallel extract https://example.com --full-content
+parallel extract --full-content https://example.com
 
-# Multiple URLs
-parallel extract https://a.com https://b.com https://c.com
+# Multiple URLs with options
+parallel extract --format text --concurrency 3 https://a.com https://b.com https://c.com
 ```
 
 ### Batch Processing
@@ -108,7 +117,7 @@ cat objectives.txt | parallel search --stdin --concurrency 10
 cat urls.txt | parallel extract --stdin --concurrency 5 --format text
 
 # Pipe to other tools
-parallel search "API design" --format json | jq '.results[].url'
+parallel search --format json "API design" | jq '.results[].url'
 ```
 
 ## Development

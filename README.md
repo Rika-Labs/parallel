@@ -69,11 +69,11 @@ Run `parallel --help` for full documentation.
 
 ## Agents
 
-Add Parallel to your AI coding agent:
+Give your AI coding agent web search and extraction capabilities:
 
 ```bash
-# Claude Code
-curl -s https://raw.githubusercontent.com/Rika-Labs/parallel/main/AGENTS.md >> CLAUDE.md
+# Claude Code / pi-coding-agent
+mkdir -p ~/.claude/skills/parallel && curl -so ~/.claude/skills/parallel/SKILL.md https://raw.githubusercontent.com/Rika-Labs/parallel/main/SKILL.md
 
 # Codex / OpenCode / Amp
 curl -s https://raw.githubusercontent.com/Rika-Labs/parallel/main/AGENTS.md >> AGENTS.md

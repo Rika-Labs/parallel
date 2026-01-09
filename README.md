@@ -67,16 +67,12 @@ cat urls.txt | parallel extract --stdin --concurrency 10
 
 Run `parallel --help` for full documentation.
 
-## Agents
+## Claude Code
 
-Give your AI coding agent web search and extraction capabilities:
+Add web search to Claude Code:
 
 ```bash
-# Claude Code / pi-coding-agent
 mkdir -p ~/.claude/skills/parallel && curl -so ~/.claude/skills/parallel/SKILL.md https://raw.githubusercontent.com/Rika-Labs/parallel/main/SKILL.md
-
-# Codex / OpenCode / Amp
-curl -s https://raw.githubusercontent.com/Rika-Labs/parallel/main/AGENTS.md >> AGENTS.md
 ```
 
 ---

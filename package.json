@@ -23,10 +23,13 @@
     "build": "bun build src/index.ts --outdir dist --target bun",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
-    "lint": "oxlint . --ignore-pattern '.submodules/**'"
+    "lint": "oxlint . --ignore-pattern '.submodules/**'",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "oxlint": "^1.38.0"
   },
   "dependencies": {
@@ -34,5 +37,10 @@
     "@effect/platform": "^0.94.1",
     "@effect/platform-bun": "^0.87.0",
     "effect": "^3.19.14"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "oxlint --fix"
+    ]
   }
 }

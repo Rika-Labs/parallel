@@ -1,0 +1,38 @@
+{
+  "name": "@rika-labs/parallel-cli",
+  "version": "0.1.0",
+  "description": "A Unix-friendly CLI for the Parallel Search and Extract APIs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rika-Labs/parallel.git"
+  },
+  "homepage": "https://github.com/Rika-Labs/parallel#readme",
+  "bugs": {
+    "url": "https://github.com/Rika-Labs/parallel/issues"
+  },
+  "author": "Rika Labs",
+  "module": "src/index.ts",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "bin": {
+    "parallel": "dist/index.js"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "lint": "oxlint . --ignore-pattern '.submodules/**'"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "oxlint": "^1.38.0"
+  },
+  "dependencies": {
+    "@effect/cli": "^0.73.0",
+    "@effect/platform": "^0.94.1",
+    "@effect/platform-bun": "^0.87.0",
+    "effect": "^3.19.14"
+  }
+}

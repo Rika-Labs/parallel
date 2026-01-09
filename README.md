@@ -67,6 +67,18 @@ cat urls.txt | parallel extract --stdin --concurrency 10
 
 Run `parallel --help` for full documentation.
 
+## Agents
+
+Add Parallel to your AI coding agent:
+
+```bash
+# Claude Code
+curl -s https://raw.githubusercontent.com/Rika-Labs/parallel/main/AGENTS.md >> CLAUDE.md
+
+# Codex / OpenCode / Amp
+curl -s https://raw.githubusercontent.com/Rika-Labs/parallel/main/AGENTS.md >> AGENTS.md
+```
+
 ---
 
 [Contributing](CONTRIBUTING.md) · [MIT License](LICENSE)

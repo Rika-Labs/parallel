@@ -1,6 +1,6 @@
 {
-  "name": "@rika-labs/parallel",
-  "version": "0.1.0",
+  "name": "@rikalabs/parallel",
+  "version": "0.0.1",
   "description": "A Unix-friendly CLI for the Parallel Search and Extract APIs",
   "keywords": [
     "parallel",

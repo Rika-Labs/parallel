@@ -100,6 +100,24 @@ describe("api", () => {
     }
   });
 
+  test("handles 422 validation error", async () => {
+    const errorBody = JSON.stringify({
+      type: "error",
+      error: { message: "Neither excerpts nor full_content were requested." }
+    });
+    global.fetch = createMockFetch(async () => new Response(errorBody, { status: 422 }));
+    const result = await Effect.runPromiseExit(extract({ urls: ["https://example.com"] }));
+    expect(result._tag).toBe("Failure");
+    if (result._tag === "Failure") {
+      const error = Cause.failureOption(result.cause);
+      expect(error._tag).toBe("Some");
+      if (error._tag === "Some") {
+        expect((error.value as CliError | ApiError).message).toContain("Validation error");
+        expect((error.value as CliError | ApiError).message).toContain("excerpts");
+      }
+    }
+  });
+
   test("handles other API errors", async () => {
     global.fetch = createMockFetch(async () => new Response("Server Error", { status: 500 }));
     const result = await Effect.runPromiseExit(search({ objective: "test" }));

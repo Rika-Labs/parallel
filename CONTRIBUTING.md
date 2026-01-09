@@ -1,78 +1,83 @@
 # Contributing
 
-Thanks for your interest in contributing to Parallel CLI!
+## Quick Start
+
+```bash
+git clone https://github.com/Rika-Labs/parallel.git
+cd parallel
+bun install
+bun test
+```
 
 ## Development
 
 ```bash
-# Clone and install
-git clone https://github.com/Rika-Labs/parallel.git
-cd parallel
-bun install
-
-# Run in development
+# Run CLI locally
 bun run dev -- search --query "test"
-
-# Lint
-bun run lint
+bun run dev -- extract --url https://example.com
 
 # Run tests
 bun test
+
+# Run tests with coverage
+bun test --coverage
+
+# Lint
+bun run lint
 
 # Build
 bun run build
 ```
 
-## Commit Convention
-
-This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated releases.
+## Project Structure
 
 ```
-<type>(<scope>): <description>
+src/
+├── cli/           # Command definitions (@effect/cli)
+├── commands/      # Command handlers
+├── config/        # API key & config management
+├── output/        # Response formatting
+├── parallel/      # API client
+├── errors.ts      # Error types
+└── index.ts       # Entry point
+
+test/              # Tests (mirrors src/)
 ```
 
-### Types
+## Commits
 
-| Type | Description | Release |
-|------|-------------|---------|
-| `feat` | New feature | Minor (0.x.0) |
-| `fix` | Bug fix | Patch (0.0.x) |
-| `perf` | Performance improvement | Patch (0.0.x) |
-| `docs` | Documentation only | No release |
-| `style` | Code style changes | No release |
-| `refactor` | Code refactor | No release |
-| `test` | Adding/updating tests | No release |
-| `build` | Build system changes | No release |
-| `ci` | CI configuration | No release |
-| `chore` | Maintenance | No release |
-
-### Breaking Changes
-
-Add `!` after type for a major release:
+We use [Conventional Commits](https://www.conventionalcommits.org/) for automatic releases.
 
 ```bash
-feat!: remove deprecated flag
+feat: add new feature     # → Minor release
+fix: bug fix              # → Patch release
+docs: update readme       # → No release
+chore: maintenance        # → No release
 ```
 
-### Examples
-
+Breaking changes:
 ```bash
-git commit -m "feat: add --verbose flag"
-git commit -m "fix: handle empty query"
-git commit -m "docs: update examples"
+feat!: breaking change    # → Major release
 ```
 
-## Architecture
+## Testing
 
-Built with [Effect TS](https://effect.website) for functional programming:
+- All new features need tests
+- Target 90%+ coverage
+- Use Effect's `runPromiseExit` for error testing
 
-- **Typed Errors**: `CliError`, `ApiError`, `ConfigError`
-- **Bounded Concurrency**: Effect's `forEach` for parallel operations
-- **Secure Config**: Effect-based file I/O
+```typescript
+import { Effect, Cause } from "effect";
 
-## Tech Stack
+test("handles error", async () => {
+  const result = await Effect.runPromiseExit(myEffect);
+  expect(result._tag).toBe("Failure");
+});
+```
 
-- [Bun](https://bun.sh) — Runtime & bundler
-- [Effect TS](https://effect.website) — Functional effects
-- [@effect/cli](https://github.com/Effect-TS/effect/tree/main/packages/cli) — CLI parsing
-- [Oxlint](https://oxc.rs) — Linting
+## Code Style
+
+- Effect TS for all async/error handling
+- `Effect.gen` for generator workflows
+- Typed errors with `_tag` discriminator
+- No `any` types

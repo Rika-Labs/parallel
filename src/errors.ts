@@ -16,3 +16,7 @@ export class ApiError extends Error {
     super(message);
   }
 }
+
+export class ValidationError extends Error {
+  readonly _tag = "ValidationError";
+}

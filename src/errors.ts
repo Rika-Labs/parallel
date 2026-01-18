@@ -16,3 +16,7 @@ export class ApiError extends Error {
     super(message);
   }
 }
+
+export class TimeoutError extends Error {
+  readonly _tag = "TimeoutError";
+}

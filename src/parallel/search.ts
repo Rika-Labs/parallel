@@ -1,7 +1,10 @@
-import { Effect } from "effect";
+import { Effect, Duration } from "effect";
 import { search } from "./api.js";
 import type { SearchRequest } from "./types.js";
 import { formatSearchResponse } from "../output/format.js";
+import { TimeoutError } from "../errors.js";
+
+const STDIN_TIMEOUT_MS = 30000; // 30 seconds
 
 export async function readStdin(): Promise<string[]> {
   const chunks: string[] = [];
@@ -29,10 +32,16 @@ export function runSearches(
   return Effect.gen(function* () {
     let allObjectives = [...objectives];
     if (stdin) {
-      const stdinLines = yield* Effect.tryPromise({
+      const stdinEffect = Effect.tryPromise({
         try: () => readStdin(),
         catch: (e) => new Error(`Failed to read stdin: ${e instanceof Error ? e.message : String(e)}`),
       });
+
+      const stdinLines = yield* Effect.timeout(stdinEffect, Duration.millis(STDIN_TIMEOUT_MS)).pipe(
+        Effect.catchTag("TimeoutException", () =>
+          Effect.fail(new TimeoutError(`Stdin read timed out after ${STDIN_TIMEOUT_MS}ms`))
+        )
+      );
       allObjectives = [...allObjectives, ...stdinLines];
     }
 

@@ -1,8 +1,11 @@
-import { Effect, Option } from "effect";
+import { Effect, Option, Duration } from "effect";
 import { extract } from "./api.js";
 import type { ExtractRequest } from "./types.js";
 import { formatExtractResponse } from "../output/format.js";
 import { readStdin } from "./search.js";
+import { TimeoutError } from "../errors.js";
+
+const STDIN_TIMEOUT_MS = 30000; // 30 seconds
 
 export function runExtracts(
   urls: string[],
@@ -17,10 +20,16 @@ export function runExtracts(
   return Effect.gen(function* () {
     let allUrls = [...urls];
     if (stdin) {
-      const stdinLines = yield* Effect.tryPromise({
+      const stdinEffect = Effect.tryPromise({
         try: () => readStdin(),
         catch: (e) => new Error(`Failed to read stdin: ${e instanceof Error ? e.message : String(e)}`),
       });
+
+      const stdinLines = yield* Effect.timeout(stdinEffect, Duration.millis(STDIN_TIMEOUT_MS)).pipe(
+        Effect.catchTag("TimeoutException", () =>
+          Effect.fail(new TimeoutError(`Stdin read timed out after ${STDIN_TIMEOUT_MS}ms`))
+        )
+      );
       allUrls = [...allUrls, ...stdinLines];
     }
 

@@ -1,10 +1,11 @@
-import { Effect } from "effect";
+import { Effect, Duration } from "effect";
 import { CliError, ApiError } from "../errors.js";
 import { loadConfigFile, resolveApiKey } from "../config/config.js";
 import type { ExtractRequest, ExtractResponse, SearchRequest, SearchResponse } from "./types.js";
 
 const API_BASE = "https://api.parallel.ai";
 const BETA_HEADER = "search-extract-2025-10-10";
+const REQUEST_TIMEOUT_MS = 30000; // 30 seconds
 
 function getApiKey(): Effect.Effect<string, CliError> {
   return Effect.gen(function* () {
@@ -35,7 +36,12 @@ function makeRequest<T>(endpoint: string, body: unknown): Effect.Effect<T, CliEr
           body: JSON.stringify(body),
         }),
       catch: (e) => new CliError(`Network error: ${e instanceof Error ? e.message : String(e)}`),
-    });
+    }).pipe(
+      Effect.timeout(Duration.millis(REQUEST_TIMEOUT_MS)),
+      Effect.catchTag("TimeoutException", () =>
+        Effect.fail(new CliError(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`))
+      )
+    );
 
     if (!response.ok) {
       const text: string = yield* Effect.tryPromise({

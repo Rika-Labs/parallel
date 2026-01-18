@@ -19,15 +19,15 @@ describe("config", () => {
   });
 
   test("resolveApiKey prefers env over file", () => {
-    process.env.PARALLEL_API_KEY = "env-key";
-    const config = { apiKey: "file-key" };
-    expect(resolveApiKey(config)).toBe("env-key");
+    process.env.PARALLEL_API_KEY = "valid-env-key-1234567890";
+    const config = { apiKey: "valid-file-key-1234567890" };
+    expect(resolveApiKey(config)).toBe("valid-env-key-1234567890");
   });
 
   test("resolveApiKey falls back to file", () => {
     delete process.env.PARALLEL_API_KEY;
-    const config = { apiKey: "file-key" };
-    expect(resolveApiKey(config)).toBe("file-key");
+    const config = { apiKey: "valid-file-key-1234567890" };
+    expect(resolveApiKey(config)).toBe("valid-file-key-1234567890");
   });
 
   test("resolveApiKey returns undefined when neither set", () => {
@@ -37,8 +37,39 @@ describe("config", () => {
   });
 
   test("resolveApiKey trims whitespace", () => {
-    process.env.PARALLEL_API_KEY = "  env-key  ";
-    expect(resolveApiKey({})).toBe("env-key");
+    process.env.PARALLEL_API_KEY = "  valid-api-key-12345678  ";
+    expect(resolveApiKey({})).toBe("valid-api-key-12345678");
+  });
+
+  test("resolveApiKey rejects keys with newlines (header injection)", () => {
+    process.env.PARALLEL_API_KEY = "valid-key-1234567890\r\nX-Injected: malicious";
+    expect(() => resolveApiKey({})).toThrow("Invalid API key format");
+  });
+
+  test("resolveApiKey rejects keys with special characters", () => {
+    process.env.PARALLEL_API_KEY = "invalid@key#with$special%chars";
+    expect(() => resolveApiKey({})).toThrow("Invalid API key format");
+  });
+
+  test("resolveApiKey rejects keys that are too short", () => {
+    process.env.PARALLEL_API_KEY = "short";
+    expect(() => resolveApiKey({})).toThrow("Invalid API key format");
+  });
+
+  test("resolveApiKey rejects keys that are too long", () => {
+    process.env.PARALLEL_API_KEY = "a".repeat(101);
+    expect(() => resolveApiKey({})).toThrow("Invalid API key format");
+  });
+
+  test("resolveApiKey accepts valid keys with hyphens and underscores", () => {
+    process.env.PARALLEL_API_KEY = "valid-api_key-123456";
+    expect(resolveApiKey({})).toBe("valid-api_key-123456");
+  });
+
+  test("resolveApiKey validates file-based keys", () => {
+    delete process.env.PARALLEL_API_KEY;
+    const config = { apiKey: "invalid@key" };
+    expect(() => resolveApiKey(config)).toThrow("Invalid API key format");
   });
 
   test("getConfigPath returns valid path", () => {
@@ -49,7 +80,7 @@ describe("config", () => {
   });
 
   test("saveConfigFile creates file with correct content", async () => {
-    const result = await Effect.runPromise(saveConfigFile({ apiKey: "test-key" }));
+    const result = await Effect.runPromise(saveConfigFile({ apiKey: "valid-test-key-1234567890" }));
     expect(result).toBeTruthy();
 
     const exists = await fs.access(result).then(() => true).catch(() => false);
@@ -57,13 +88,13 @@ describe("config", () => {
 
     const content = await fs.readFile(result, "utf8");
     const parsed = JSON.parse(content.trim());
-    expect(parsed.apiKey).toBe("test-key");
+    expect(parsed.apiKey).toBe("valid-test-key-1234567890");
   });
 
   test("loadConfigFile reads valid config", async () => {
-    await Effect.runPromise(saveConfigFile({ apiKey: "test-key" }));
+    await Effect.runPromise(saveConfigFile({ apiKey: "valid-test-key-1234567890" }));
     const result = await Effect.runPromise(loadConfigFile);
-    expect(result.apiKey).toBe("test-key");
+    expect(result.apiKey).toBe("valid-test-key-1234567890");
   });
 
   test("loadConfigFile handles missing file gracefully", async () => {
@@ -75,7 +106,7 @@ describe("config", () => {
   });
 
   test("removeConfigFile deletes file", async () => {
-    const file = await Effect.runPromise(saveConfigFile({ apiKey: "test-key" }));
+    const file = await Effect.runPromise(saveConfigFile({ apiKey: "valid-test-key-1234567890" }));
     const result = await Effect.runPromise(removeConfigFile);
     expect(result).toBe(file);
 

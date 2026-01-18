@@ -6,20 +6,17 @@ import { readStdin } from "./search.js";
 import { ValidationError } from "../errors.js";
 
 function validateUrl(url: string): Effect.Effect<string, ValidationError> {
-  return Effect.try({
-    try: () => {
-      const parsed = new URL(url);
-      if (!["http:", "https:"].includes(parsed.protocol)) {
-        throw new ValidationError(`Invalid URL protocol: ${url}. Only http: and https: are allowed`);
-      }
-      return url;
-    },
-    catch: (error) => {
-      if (error instanceof ValidationError) {
-        return error;
-      }
-      return new ValidationError(`Invalid URL format: ${url}`);
-    },
+  return Effect.gen(function* () {
+    const parsed = yield* Effect.try({
+      try: () => new URL(url),
+      catch: () => new ValidationError(`Invalid URL format: ${url}`),
+    });
+
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return yield* Effect.fail(new ValidationError(`Invalid URL protocol: ${url}. Only http: and https: are allowed`));
+    }
+
+    return url;
   });
 }
 

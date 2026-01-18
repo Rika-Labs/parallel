@@ -1,5 +1,5 @@
 import { describe, expect, test, mock, beforeEach, afterEach } from "bun:test";
-import { Effect, Cause } from "effect";
+import { Effect, Cause, TestClock } from "effect";
 import { search, extract } from "../src/parallel/api.js";
 import { saveConfigFile } from "../src/config/config.js";
 import { setupTestEnv, cleanupTestEnv } from "./helpers.js";
@@ -150,7 +150,16 @@ describe("api", () => {
       await new Promise(() => {});
       return new Response(JSON.stringify({ search_id: "test" }), { status: 200 });
     });
-    const result = await Effect.runPromiseExit(search({ objective: "test" }));
+
+    // Use TestClock to control time without actually waiting
+    const program = Effect.gen(function* () {
+      const fiber = yield* Effect.fork(search({ objective: "test" }));
+      yield* TestClock.adjust("31 seconds");
+      const result = yield* Effect.join(fiber);
+      return result;
+    });
+
+    const result = await Effect.runPromiseExit(program);
     expect(result._tag).toBe("Failure");
     if (result._tag === "Failure") {
       const error = Cause.failureOption(result.cause);
@@ -159,5 +168,5 @@ describe("api", () => {
         expect((error.value as CliError | ApiError).message).toContain("Request timed out after 30000ms");
       }
     }
-  }, 35000);
+  });
 });

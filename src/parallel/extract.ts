@@ -13,7 +13,7 @@ function validateUrl(url: string): Effect.Effect<string, ValidationError> {
     });
 
     if (!["http:", "https:"].includes(parsed.protocol)) {
-      return yield* Effect.fail(new ValidationError(`Invalid URL protocol: ${url}. Only http: and https: are allowed`));
+      yield* Effect.fail(new ValidationError(`Invalid URL protocol: ${url}. Only http: and https: are allowed`));
     }
 
     return url;

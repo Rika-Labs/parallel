@@ -146,8 +146,8 @@ describe("api", () => {
 
   test("handles request timeout", async () => {
     global.fetch = createMockFetch(async () => {
-      // Simulate a slow response that exceeds the timeout
-      await new Promise(resolve => setTimeout(resolve, 35000));
+      // Simulate a slow response that exceeds the timeout (never resolves)
+      await new Promise(() => {});
       return new Response(JSON.stringify({ search_id: "test" }), { status: 200 });
     });
     const result = await Effect.runPromiseExit(search({ objective: "test" }));
@@ -159,5 +159,5 @@ describe("api", () => {
         expect((error.value as CliError | ApiError).message).toContain("Request timed out after 30000ms");
       }
     }
-  });
+  }, 35000);
 });

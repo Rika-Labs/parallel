@@ -46,9 +46,9 @@ function makeRequest<T>(endpoint: string, body: unknown): Effect.Effect<T, CliEr
     if (!response.ok) {
       const text: string = yield* Effect.tryPromise({
         try: () => response.text(),
-        catch: (): CliError => new CliError("Failed to read error response"),
-      }).pipe(Effect.orElseSucceed(() => "Failed to read error response"));
-      
+        catch: (e) => new CliError(`Failed to read error response: ${e instanceof Error ? e.message : String(e)}`),
+      }).pipe(Effect.orElseSucceed((error) => `Failed to read error response: ${error.message}`));
+
       let message = `API error (${response.status})`;
       if (response.status === 401) {
         message = "Invalid API key. Check your key with 'parallel config get-key'";
@@ -59,7 +59,7 @@ function makeRequest<T>(endpoint: string, body: unknown): Effect.Effect<T, CliEr
       } else if (response.status === 429) {
         message = "Rate limit exceeded. Try again later.";
       }
-      
+
       return yield* Effect.fail(new ApiError(message, response.status, text));
     }
 

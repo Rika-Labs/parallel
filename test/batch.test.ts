@@ -71,7 +71,7 @@ describe("batch", () => {
     process.stdout.write = stdoutWrite as any;
 
     await Effect.runPromise(runExtracts(
-      ["url1"],
+      ["http://test.com"],
       false,
       Option.none(),
       true,

@@ -143,4 +143,21 @@ describe("api", () => {
       }
     }
   });
+
+  test("handles request timeout", async () => {
+    global.fetch = createMockFetch(async () => {
+      // Simulate a slow response that exceeds the timeout
+      await new Promise(resolve => setTimeout(resolve, 35000));
+      return new Response(JSON.stringify({ search_id: "test" }), { status: 200 });
+    });
+    const result = await Effect.runPromiseExit(search({ objective: "test" }));
+    expect(result._tag).toBe("Failure");
+    if (result._tag === "Failure") {
+      const error = Cause.failureOption(result.cause);
+      expect(error._tag).toBe("Some");
+      if (error._tag === "Some") {
+        expect((error.value as CliError | ApiError).message).toContain("Request timed out after 30000ms");
+      }
+    }
+  });
 });

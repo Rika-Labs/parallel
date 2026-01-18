@@ -176,4 +176,104 @@ describe("batch", () => {
 
     (Bun.stdin as any).stream = originalStdin;
   });
+
+  test("runSearches handles minimum concurrency (1)", async () => {
+    let callCount = 0;
+    global.fetch = createMockFetch(async () => {
+      callCount++;
+      return new Response(JSON.stringify({
+        search_id: `id-${callCount}`,
+        results: []
+      }), { status: 200 });
+    });
+
+    await Effect.runPromise(runSearches(
+      ["obj1", "obj2"],
+      false,
+      "one-shot",
+      [],
+      10,
+      6000,
+      1, // minimum concurrency
+      "json",
+      false
+    ));
+
+    expect(callCount).toBe(2);
+  });
+
+  test("runSearches handles maximum concurrency (50)", async () => {
+    let callCount = 0;
+    global.fetch = createMockFetch(async () => {
+      callCount++;
+      return new Response(JSON.stringify({
+        search_id: `id-${callCount}`,
+        results: []
+      }), { status: 200 });
+    });
+
+    const objectives = Array.from({ length: 10 }, (_, i) => `obj${i}`);
+    await Effect.runPromise(runSearches(
+      objectives,
+      false,
+      "one-shot",
+      [],
+      10,
+      6000,
+      50, // maximum concurrency
+      "json",
+      false
+    ));
+
+    expect(callCount).toBe(10);
+  });
+
+  test("runExtracts handles minimum concurrency (1)", async () => {
+    let callCount = 0;
+    global.fetch = createMockFetch(async () => {
+      callCount++;
+      return new Response(JSON.stringify({
+        extract_id: `id-${callCount}`,
+        results: []
+      }), { status: 200 });
+    });
+
+    await Effect.runPromise(runExtracts(
+      ["http://test1.com", "http://test2.com"],
+      false,
+      Option.none(),
+      true,
+      false,
+      1, // minimum concurrency
+      "json",
+      false
+    ));
+
+    expect(callCount).toBe(2);
+  });
+
+  test("runExtracts handles maximum concurrency (50)", async () => {
+    let callCount = 0;
+    global.fetch = createMockFetch(async () => {
+      callCount++;
+      return new Response(JSON.stringify({
+        extract_id: `id-${callCount}`,
+        results: []
+      }), { status: 200 });
+    });
+
+    const urls = Array.from({ length: 10 }, (_, i) => `http://test${i}.com`);
+    await Effect.runPromise(runExtracts(
+      urls,
+      false,
+      Option.none(),
+      true,
+      false,
+      50, // maximum concurrency
+      "json",
+      false
+    ));
+
+    expect(callCount).toBe(10);
+  });
 });

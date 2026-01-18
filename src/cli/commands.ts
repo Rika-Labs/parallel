@@ -62,6 +62,7 @@ const search = Command.make("search", {
   },
 }, ({ options }) => {
   const queries = Array.fromIterable(options.query);
+  const boundedConcurrency = Math.min(Math.max(1, options.concurrency), 50);
 
   return runSearchCommand({
     objectives: queries,
@@ -70,7 +71,7 @@ const search = Command.make("search", {
     queries: [],
     maxResults: options.maxResults,
     excerptChars: options.excerptChars,
-    concurrency: options.concurrency,
+    concurrency: boundedConcurrency,
     format: options.format,
     pretty: options.pretty,
   });
@@ -110,13 +111,15 @@ const extract = Command.make("extract", {
   },
 }, ({ options }) => {
   const urls = Array.fromIterable(options.url);
+  const boundedConcurrency = Math.min(Math.max(1, options.concurrency), 50);
+
   return runExtractCommand({
     urls,
     stdin: options.stdin,
     objective: Option.isSome(options.objective) ? Option.some(options.objective.value) : Option.none(),
     excerpts: options.excerpts,
     fullContent: options.fullContent,
-    concurrency: options.concurrency,
+    concurrency: boundedConcurrency,
     format: options.format,
     pretty: options.pretty,
   });

@@ -126,12 +126,14 @@ describe("extract", () => {
       false
     ));
 
-    expect(Cause.isFailure(exit)).toBe(true);
-    const error = Cause.failureOption(exit);
-    expect(Option.isSome(error)).toBe(true);
-    if (Option.isSome(error)) {
-      expect(error.value).toBeInstanceOf(ValidationError);
-      expect(error.value.message).toContain("Invalid URL format");
+    expect(exit._tag).toBe("Failure");
+    if (exit._tag === "Failure") {
+      const error = Cause.failureOption(exit.cause);
+      expect(Option.isSome(error)).toBe(true);
+      if (Option.isSome(error)) {
+        expect(error.value).toBeInstanceOf(ValidationError);
+        expect(error.value.message).toContain("Invalid URL format");
+      }
     }
   });
 
@@ -147,13 +149,15 @@ describe("extract", () => {
       false
     ));
 
-    expect(Cause.isFailure(exit)).toBe(true);
-    const error = Cause.failureOption(exit);
-    expect(Option.isSome(error)).toBe(true);
-    if (Option.isSome(error)) {
-      expect(error.value).toBeInstanceOf(ValidationError);
-      expect(error.value.message).toContain("Invalid URL protocol");
-      expect(error.value.message).toContain("javascript:");
+    expect(exit._tag).toBe("Failure");
+    if (exit._tag === "Failure") {
+      const error = Cause.failureOption(exit.cause);
+      expect(Option.isSome(error)).toBe(true);
+      if (Option.isSome(error)) {
+        expect(error.value).toBeInstanceOf(ValidationError);
+        expect(error.value.message).toContain("Invalid URL protocol");
+        expect(error.value.message).toContain("javascript:");
+      }
     }
   });
 
@@ -169,13 +173,15 @@ describe("extract", () => {
       false
     ));
 
-    expect(Cause.isFailure(exit)).toBe(true);
-    const error = Cause.failureOption(exit);
-    expect(Option.isSome(error)).toBe(true);
-    if (Option.isSome(error)) {
-      expect(error.value).toBeInstanceOf(ValidationError);
-      expect(error.value.message).toContain("Invalid URL protocol");
-      expect(error.value.message).toContain("file:");
+    expect(exit._tag).toBe("Failure");
+    if (exit._tag === "Failure") {
+      const error = Cause.failureOption(exit.cause);
+      expect(Option.isSome(error)).toBe(true);
+      if (Option.isSome(error)) {
+        expect(error.value).toBeInstanceOf(ValidationError);
+        expect(error.value.message).toContain("Invalid URL protocol");
+        expect(error.value.message).toContain("file:");
+      }
     }
   });
 
@@ -237,12 +243,14 @@ describe("extract", () => {
       false
     ));
 
-    expect(Cause.isFailure(exit)).toBe(true);
-    const error = Cause.failureOption(exit);
-    expect(Option.isSome(error)).toBe(true);
-    if (Option.isSome(error)) {
-      expect(error.value).toBeInstanceOf(ValidationError);
-      expect(error.value.message).toContain("not a url");
+    expect(exit._tag).toBe("Failure");
+    if (exit._tag === "Failure") {
+      const error = Cause.failureOption(exit.cause);
+      expect(Option.isSome(error)).toBe(true);
+      if (Option.isSome(error)) {
+        expect(error.value).toBeInstanceOf(ValidationError);
+        expect(error.value.message).toContain("not a url");
+      }
     }
   });
 });

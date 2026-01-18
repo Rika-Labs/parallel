@@ -9,7 +9,7 @@ function validateUrl(url: string): Effect.Effect<string, ValidationError> {
   return Effect.gen(function* () {
     const parsed = yield* Effect.try({
       try: () => new URL(url),
-      catch: () => new ValidationError(`Invalid URL format: ${url}`),
+      catch: (_error) => new ValidationError(`Invalid URL format: ${url}`),
     });
 
     if (!["http:", "https:"].includes(parsed.protocol)) {

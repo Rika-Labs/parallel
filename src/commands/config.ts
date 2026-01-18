@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { CliError } from "../errors.js";
+import { CliError, ConfigError } from "../errors.js";
 import { getConfigPath, loadConfigFile, removeConfigFile, resolveApiKey, saveConfigFile } from "../config/config.js";
 
 export type ConfigCommandAction = "set-key" | "get-key" | "unset-key" | "path";
@@ -10,7 +10,7 @@ export interface ConfigCommand {
   key?: string;
 }
 
-export function runConfigCommand(cmd: ConfigCommand) {
+export function runConfigCommand(cmd: ConfigCommand): Effect.Effect<void, CliError | ConfigError> {
   return Effect.gen(function* () {
     if (cmd.action === "path") {
       process.stdout.write(`${getConfigPath()}\n`);

@@ -1,4 +1,5 @@
 import { Effect, Option } from "effect";
+import { ApiError, CliError } from "../errors.js";
 import { runExtracts } from "../parallel/extract.js";
 
 export type Format = "json" | "text";
@@ -14,7 +15,7 @@ export interface ExtractCommand {
   pretty: boolean;
 }
 
-export function runExtractCommand(cmd: ExtractCommand): Effect.Effect<void, any> {
+export function runExtractCommand(cmd: ExtractCommand): Effect.Effect<void, CliError | ApiError> {
   return runExtracts(
     cmd.urls,
     cmd.stdin,

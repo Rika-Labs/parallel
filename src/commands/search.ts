@@ -1,4 +1,5 @@
 import { Effect } from "effect";
+import { ApiError, CliError } from "../errors.js";
 import { runSearches } from "../parallel/search.js";
 
 export type SearchMode = "one-shot" | "agentic";
@@ -16,7 +17,7 @@ export interface SearchCommand {
   pretty: boolean;
 }
 
-export function runSearchCommand(cmd: SearchCommand): Effect.Effect<void, any> {
+export function runSearchCommand(cmd: SearchCommand): Effect.Effect<void, CliError | ApiError> {
   return runSearches(
     cmd.objectives,
     cmd.stdin,

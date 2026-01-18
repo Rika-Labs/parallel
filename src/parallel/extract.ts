@@ -1,4 +1,5 @@
 import { Effect, Option } from "effect";
+import { ApiError, CliError } from "../errors.js";
 import { extract } from "./api.js";
 import type { ExtractRequest } from "./types.js";
 import { formatExtractResponse } from "../output/format.js";
@@ -13,19 +14,19 @@ export function runExtracts(
   concurrency: number,
   format: "json" | "text",
   pretty: boolean,
-): Effect.Effect<void, Error> {
+): Effect.Effect<void, CliError | ApiError> {
   return Effect.gen(function* () {
     let allUrls = [...urls];
     if (stdin) {
       const stdinLines = yield* Effect.tryPromise({
         try: () => readStdin(),
-        catch: (e) => new Error(`Failed to read stdin: ${e instanceof Error ? e.message : String(e)}`),
+        catch: (e) => new CliError(`Failed to read stdin: ${e instanceof Error ? e.message : String(e)}`),
       });
       allUrls = [...allUrls, ...stdinLines];
     }
 
     if (allUrls.length === 0) {
-      return yield* Effect.fail(new Error("No URLs provided. Provide URLs as arguments or use --stdin"));
+      return yield* Effect.fail(new CliError("No URLs provided. Provide URLs as arguments or use --stdin"));
     }
 
     // Default to excerpts if neither is requested

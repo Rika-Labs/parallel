@@ -1,4 +1,5 @@
 import { Effect } from "effect";
+import { ApiError, CliError } from "../errors.js";
 import { search } from "./api.js";
 import type { SearchRequest } from "./types.js";
 import { formatSearchResponse } from "../output/format.js";
@@ -25,19 +26,19 @@ export function runSearches(
   concurrency: number,
   format: "json" | "text",
   pretty: boolean,
-): Effect.Effect<void, Error> {
+): Effect.Effect<void, CliError | ApiError> {
   return Effect.gen(function* () {
     let allObjectives = [...objectives];
     if (stdin) {
       const stdinLines = yield* Effect.tryPromise({
         try: () => readStdin(),
-        catch: (e) => new Error(`Failed to read stdin: ${e instanceof Error ? e.message : String(e)}`),
+        catch: (e) => new CliError(`Failed to read stdin: ${e instanceof Error ? e.message : String(e)}`),
       });
       allObjectives = [...allObjectives, ...stdinLines];
     }
 
     if (allObjectives.length === 0) {
-      return yield* Effect.fail(new Error("No objectives provided. Use --objective or --stdin"));
+      return yield* Effect.fail(new CliError("No objectives provided. Use --objective or --stdin"));
     }
 
     const requests: SearchRequest[] = allObjectives.map((objective) => ({

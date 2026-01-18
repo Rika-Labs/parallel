@@ -143,4 +143,116 @@ describe("api", () => {
       }
     }
   });
+
+  test("retries on 429 error and succeeds", async () => {
+    let attemptCount = 0;
+    global.fetch = createMockFetch(async (url, init) => {
+      attemptCount++;
+      if (attemptCount < 3) {
+        return new Response("Too Many Requests", { status: 429 });
+      }
+      return new Response(JSON.stringify({
+        search_id: "test-id",
+        results: []
+      }), { status: 200 });
+    });
+
+    const result = await Effect.runPromise(search({ objective: "test" }));
+    expect(result.search_id).toBe("test-id");
+    expect(attemptCount).toBe(3);
+  });
+
+  test("retries on 500 error and succeeds", async () => {
+    let attemptCount = 0;
+    global.fetch = createMockFetch(async () => {
+      attemptCount++;
+      if (attemptCount < 2) {
+        return new Response("Internal Server Error", { status: 500 });
+      }
+      return new Response(JSON.stringify({
+        search_id: "test-id",
+        results: []
+      }), { status: 200 });
+    });
+
+    const result = await Effect.runPromise(search({ objective: "test" }));
+    expect(result.search_id).toBe("test-id");
+    expect(attemptCount).toBe(2);
+  });
+
+  test("retries on network error and succeeds", async () => {
+    let attemptCount = 0;
+    global.fetch = createMockFetch(async () => {
+      attemptCount++;
+      if (attemptCount < 2) {
+        throw new Error("Network failure");
+      }
+      return new Response(JSON.stringify({
+        search_id: "test-id",
+        results: []
+      }), { status: 200 });
+    });
+
+    const result = await Effect.runPromise(search({ objective: "test" }));
+    expect(result.search_id).toBe("test-id");
+    expect(attemptCount).toBe(2);
+  });
+
+  test("exhausts retries on persistent 429 error", async () => {
+    let attemptCount = 0;
+    global.fetch = createMockFetch(async () => {
+      attemptCount++;
+      return new Response("Too Many Requests", { status: 429 });
+    });
+
+    const result = await Effect.runPromiseExit(search({ objective: "test" }));
+    expect(result._tag).toBe("Failure");
+    expect(attemptCount).toBe(4); // 1 initial + 3 retries
+    if (result._tag === "Failure") {
+      const error = Cause.failureOption(result.cause);
+      expect(error._tag).toBe("Some");
+      if (error._tag === "Some") {
+        expect((error.value as CliError | ApiError).message).toContain("Rate limit exceeded");
+      }
+    }
+  });
+
+  test("exhausts retries on persistent 500 error", async () => {
+    let attemptCount = 0;
+    global.fetch = createMockFetch(async () => {
+      attemptCount++;
+      return new Response("Internal Server Error", { status: 500 });
+    });
+
+    const result = await Effect.runPromiseExit(search({ objective: "test" }));
+    expect(result._tag).toBe("Failure");
+    expect(attemptCount).toBe(4); // 1 initial + 3 retries
+  });
+
+  test("does not retry on 401 error", async () => {
+    let attemptCount = 0;
+    global.fetch = createMockFetch(async () => {
+      attemptCount++;
+      return new Response("Unauthorized", { status: 401 });
+    });
+
+    const result = await Effect.runPromiseExit(search({ objective: "test" }));
+    expect(result._tag).toBe("Failure");
+    expect(attemptCount).toBe(1); // No retries
+  });
+
+  test("does not retry on 422 validation error", async () => {
+    let attemptCount = 0;
+    global.fetch = createMockFetch(async () => {
+      attemptCount++;
+      return new Response(JSON.stringify({
+        type: "error",
+        error: { message: "Invalid request" }
+      }), { status: 422 });
+    });
+
+    const result = await Effect.runPromiseExit(search({ objective: "test" }));
+    expect(result._tag).toBe("Failure");
+    expect(attemptCount).toBe(1); // No retries
+  });
 });

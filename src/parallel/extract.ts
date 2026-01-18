@@ -3,9 +3,24 @@ import { extract } from "./api.js";
 import type { ExtractRequest } from "./types.js";
 import { formatExtractResponse } from "../output/format.js";
 import { readStdin } from "./search.js";
-import { TimeoutError } from "../errors.js";
+import { ValidationError, TimeoutError } from "../errors.js";
 
 const STDIN_TIMEOUT_MS = 30000; // 30 seconds
+
+function validateUrl(url: string): Effect.Effect<string, ValidationError> {
+  return Effect.gen(function* () {
+    const parsed = yield* Effect.try({
+      try: () => new URL(url),
+      catch: (_error) => new ValidationError(`Invalid URL format: ${url}`),
+    });
+
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      yield* Effect.fail(new ValidationError(`Invalid URL protocol: ${url}. Only http: and https: are allowed`));
+    }
+
+    return url;
+  });
+}
 
 export function runExtracts(
   urls: string[],
@@ -37,10 +52,13 @@ export function runExtracts(
       return yield* Effect.fail(new Error("No URLs provided. Provide URLs as arguments or use --stdin"));
     }
 
+    // Validate all URLs before processing
+    const validatedUrls = yield* Effect.forEach(allUrls, (url) => validateUrl(url), { concurrency: 1 });
+
     // Default to excerpts if neither is requested
     const useExcerpts = excerpts || !fullContent;
-    
-    const requests: ExtractRequest[] = allUrls.map((url) => ({
+
+    const requests: ExtractRequest[] = validatedUrls.map((url) => ({
       urls: [url],
       objective: Option.isSome(objective) ? objective.value : undefined,
       excerpts: useExcerpts,

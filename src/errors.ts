@@ -17,6 +17,10 @@ export class ApiError extends Error {
   }
 }
 
+export class ValidationError extends Error {
+  readonly _tag = "ValidationError";
+}
+
 export class TimeoutError extends Error {
   readonly _tag = "TimeoutError";
 }

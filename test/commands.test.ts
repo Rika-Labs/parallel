@@ -34,16 +34,16 @@ describe("commands", () => {
     const originalStdoutWrite = process.stdout.write;
     process.stdout.write = stdoutWrite as any;
 
-    await Effect.runPromise(runConfigCommand({ _tag: "Config", action: "set-key", key: "new-key" }));
+    await Effect.runPromise(runConfigCommand({ _tag: "Config", action: "set-key", key: "valid-new-key-1234567890" }));
 
     process.stdout.write = originalStdoutWrite;
     const path = String(stdoutWrite.mock.calls[0]?.[0]).trim();
     const content = await fs.readFile(path, "utf8");
-    expect(JSON.parse(content).apiKey).toBe("new-key");
+    expect(JSON.parse(content).apiKey).toBe("valid-new-key-1234567890");
   });
 
   test("runConfigCommand get-key success", async () => {
-    await Effect.runPromise(saveConfigFile({ apiKey: "stored-key" }));
+    await Effect.runPromise(saveConfigFile({ apiKey: "valid-stored-key-1234567890" }));
     const stdoutWrite = mock((_str: string) => {});
     const originalStdoutWrite = process.stdout.write;
     process.stdout.write = stdoutWrite as any;
@@ -51,7 +51,7 @@ describe("commands", () => {
     await Effect.runPromise(runConfigCommand({ _tag: "Config", action: "get-key" }));
 
     process.stdout.write = originalStdoutWrite;
-    expect(stdoutWrite.mock.calls[0]?.[0]).toBe(`stored-key\n`);
+    expect(stdoutWrite.mock.calls[0]?.[0]).toBe(`valid-stored-key-1234567890\n`);
   });
 
   test("runConfigCommand get-key missing", async () => {

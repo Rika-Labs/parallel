@@ -18,7 +18,7 @@ describe("api", () => {
   beforeEach(async () => {
     delete process.env.PARALLEL_API_KEY;
     await setupTestEnv();
-    await Effect.runPromise(saveConfigFile({ apiKey: "test-key" }));
+    await Effect.runPromise(saveConfigFile({ apiKey: "valid-test-key-1234567890" }));
   });
 
   afterEach(async () => {
@@ -32,9 +32,9 @@ describe("api", () => {
       expect(url).toBe("https://api.parallel.ai/v1beta/search");
       expect(init?.method).toBe("POST");
       const headers = init?.headers as Record<string, string>;
-      expect(headers["x-api-key"]).toBe("test-key");
+      expect(headers["x-api-key"]).toBe("valid-test-key-1234567890");
       expect(headers["parallel-beta"]).toBe("search-extract-2025-10-10");
-      
+
       return new Response(JSON.stringify({
         search_id: "test-id",
         results: []

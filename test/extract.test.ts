@@ -21,7 +21,7 @@ describe("extract", () => {
   beforeEach(async () => {
     delete process.env.PARALLEL_API_KEY;
     await setupTestEnv();
-    await Effect.runPromise(saveConfigFile({ apiKey: "test-key" }));
+    await Effect.runPromise(saveConfigFile({ apiKey: "valid-test-key-1234567890" }));
     output = "";
     process.stdout.write = ((chunk: string) => {
       output += chunk;

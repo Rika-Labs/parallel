@@ -1,9 +1,10 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { Effect } from "effect";
+import { Effect, Exit, Cause } from "effect";
 import { getConfigPath, loadConfigFile, removeConfigFile, resolveApiKey, saveConfigFile } from "../src/config/config.js";
 import { configFilePath } from "../src/config/paths.js";
 import { setupTestEnv, cleanupTestEnv } from "./helpers.js";
 import fs from "node:fs/promises";
+import { ConfigError } from "../src/errors.js";
 
 describe("config", () => {
   const originalEnv = process.env.PARALLEL_API_KEY;
@@ -18,27 +19,108 @@ describe("config", () => {
     await cleanupTestEnv();
   });
 
-  test("resolveApiKey prefers env over file", () => {
-    process.env.PARALLEL_API_KEY = "env-key";
-    const config = { apiKey: "file-key" };
-    expect(resolveApiKey(config)).toBe("env-key");
+  test("resolveApiKey prefers env over file", async () => {
+    process.env.PARALLEL_API_KEY = "valid-env-key-1234567890";
+    const config = { apiKey: "valid-file-key-1234567890" };
+    const result = await Effect.runPromise(resolveApiKey(config));
+    expect(result).toBe("valid-env-key-1234567890");
   });
 
-  test("resolveApiKey falls back to file", () => {
+  test("resolveApiKey falls back to file", async () => {
     delete process.env.PARALLEL_API_KEY;
-    const config = { apiKey: "file-key" };
-    expect(resolveApiKey(config)).toBe("file-key");
+    const config = { apiKey: "valid-file-key-1234567890" };
+    const result = await Effect.runPromise(resolveApiKey(config));
+    expect(result).toBe("valid-file-key-1234567890");
   });
 
-  test("resolveApiKey returns undefined when neither set", () => {
+  test("resolveApiKey returns undefined when neither set", async () => {
     delete process.env.PARALLEL_API_KEY;
     const config = {};
-    expect(resolveApiKey(config)).toBeUndefined();
+    const result = await Effect.runPromise(resolveApiKey(config));
+    expect(result).toBeUndefined();
   });
 
-  test("resolveApiKey trims whitespace", () => {
-    process.env.PARALLEL_API_KEY = "  env-key  ";
-    expect(resolveApiKey({})).toBe("env-key");
+  test("resolveApiKey trims whitespace", async () => {
+    process.env.PARALLEL_API_KEY = "  valid-api-key-12345678  ";
+    const result = await Effect.runPromise(resolveApiKey({}));
+    expect(result).toBe("valid-api-key-12345678");
+  });
+
+  test("resolveApiKey rejects keys with newlines (header injection)", async () => {
+    process.env.PARALLEL_API_KEY = "valid-key-1234567890\r\nX-Injected: malicious";
+    const result = await Effect.runPromiseExit(resolveApiKey({}));
+    expect(Exit.isFailure(result)).toBe(true);
+    if (Exit.isFailure(result)) {
+      const error = Cause.failureOption(result.cause);
+      expect(error).toBeDefined();
+      if (error) {
+        expect(error._tag).toBe("ConfigError");
+        expect(error.message).toContain("Invalid API key format");
+      }
+    }
+  });
+
+  test("resolveApiKey rejects keys with special characters", async () => {
+    process.env.PARALLEL_API_KEY = "invalid@key#with$special%chars";
+    const result = await Effect.runPromiseExit(resolveApiKey({}));
+    expect(Exit.isFailure(result)).toBe(true);
+    if (Exit.isFailure(result)) {
+      const error = Cause.failureOption(result.cause);
+      expect(error).toBeDefined();
+      if (error) {
+        expect(error._tag).toBe("ConfigError");
+        expect(error.message).toContain("Invalid API key format");
+      }
+    }
+  });
+
+  test("resolveApiKey rejects keys that are too short", async () => {
+    process.env.PARALLEL_API_KEY = "short";
+    const result = await Effect.runPromiseExit(resolveApiKey({}));
+    expect(Exit.isFailure(result)).toBe(true);
+    if (Exit.isFailure(result)) {
+      const error = Cause.failureOption(result.cause);
+      expect(error).toBeDefined();
+      if (error) {
+        expect(error._tag).toBe("ConfigError");
+        expect(error.message).toContain("Invalid API key format");
+      }
+    }
+  });
+
+  test("resolveApiKey rejects keys that are too long", async () => {
+    process.env.PARALLEL_API_KEY = "a".repeat(101);
+    const result = await Effect.runPromiseExit(resolveApiKey({}));
+    expect(Exit.isFailure(result)).toBe(true);
+    if (Exit.isFailure(result)) {
+      const error = Cause.failureOption(result.cause);
+      expect(error).toBeDefined();
+      if (error) {
+        expect(error._tag).toBe("ConfigError");
+        expect(error.message).toContain("Invalid API key format");
+      }
+    }
+  });
+
+  test("resolveApiKey accepts valid keys with hyphens and underscores", async () => {
+    process.env.PARALLEL_API_KEY = "valid-api_key-123456";
+    const result = await Effect.runPromise(resolveApiKey({}));
+    expect(result).toBe("valid-api_key-123456");
+  });
+
+  test("resolveApiKey validates file-based keys", async () => {
+    delete process.env.PARALLEL_API_KEY;
+    const config = { apiKey: "invalid@key" };
+    const result = await Effect.runPromiseExit(resolveApiKey(config));
+    expect(Exit.isFailure(result)).toBe(true);
+    if (Exit.isFailure(result)) {
+      const error = Cause.failureOption(result.cause);
+      expect(error).toBeDefined();
+      if (error) {
+        expect(error._tag).toBe("ConfigError");
+        expect(error.message).toContain("Invalid API key format");
+      }
+    }
   });
 
   test("getConfigPath returns valid path", () => {
@@ -49,7 +131,7 @@ describe("config", () => {
   });
 
   test("saveConfigFile creates file with correct content", async () => {
-    const result = await Effect.runPromise(saveConfigFile({ apiKey: "test-key" }));
+    const result = await Effect.runPromise(saveConfigFile({ apiKey: "valid-test-key-1234567890" }));
     expect(result).toBeTruthy();
 
     const exists = await fs.access(result).then(() => true).catch(() => false);
@@ -57,7 +139,7 @@ describe("config", () => {
 
     const content = await fs.readFile(result, "utf8");
     const parsed = JSON.parse(content.trim());
-    expect(parsed.apiKey).toBe("test-key");
+    expect(parsed.apiKey).toBe("valid-test-key-1234567890");
   });
 
   test("saveConfigFile sets secure file permissions (0o600)", async () => {
@@ -69,9 +151,9 @@ describe("config", () => {
   });
 
   test("loadConfigFile reads valid config", async () => {
-    await Effect.runPromise(saveConfigFile({ apiKey: "test-key" }));
+    await Effect.runPromise(saveConfigFile({ apiKey: "valid-test-key-1234567890" }));
     const result = await Effect.runPromise(loadConfigFile);
-    expect(result.apiKey).toBe("test-key");
+    expect(result.apiKey).toBe("valid-test-key-1234567890");
   });
 
   test("loadConfigFile handles missing file gracefully", async () => {
@@ -83,7 +165,7 @@ describe("config", () => {
   });
 
   test("removeConfigFile deletes file", async () => {
-    const file = await Effect.runPromise(saveConfigFile({ apiKey: "test-key" }));
+    const file = await Effect.runPromise(saveConfigFile({ apiKey: "valid-test-key-1234567890" }));
     const result = await Effect.runPromise(removeConfigFile);
     expect(result).toBe(file);
 
@@ -112,16 +194,47 @@ describe("config", () => {
     const originalPlatform = process.platform;
     const originalXdg = process.env.XDG_CONFIG_HOME;
     const originalTestDir = process.env.PARALLEL_TEST_CONFIG_DIR;
-    
+
     delete process.env.PARALLEL_TEST_CONFIG_DIR;
     Object.defineProperty(process, "platform", { value: "linux", writable: true });
     delete process.env.XDG_CONFIG_HOME;
-    
+
     const path = configFilePath("test-app");
     expect(path).toContain(".config/test-app/config.json");
-    
+
     Object.defineProperty(process, "platform", { value: originalPlatform, writable: true });
     process.env.XDG_CONFIG_HOME = originalXdg;
     if (originalTestDir) process.env.PARALLEL_TEST_CONFIG_DIR = originalTestDir;
+  });
+
+  test("resolveApiKey returns ConfigError through Effect channel for invalid env key", async () => {
+    process.env.PARALLEL_API_KEY = "invalid-key-with-newline\nX-Injected: header";
+    const result = await Effect.runPromiseExit(resolveApiKey({}));
+
+    expect(Exit.isFailure(result)).toBe(true);
+    if (Exit.isFailure(result)) {
+      const error = Cause.failureOption(result.cause);
+      expect(error).toBeDefined();
+      if (error) {
+        expect(error._tag).toBe("ConfigError");
+        expect(error.message).toContain("Invalid API key format");
+      }
+    }
+  });
+
+  test("resolveApiKey returns ConfigError through Effect channel for invalid file key", async () => {
+    delete process.env.PARALLEL_API_KEY;
+    const config = { apiKey: "short" };
+    const result = await Effect.runPromiseExit(resolveApiKey(config));
+
+    expect(Exit.isFailure(result)).toBe(true);
+    if (Exit.isFailure(result)) {
+      const error = Cause.failureOption(result.cause);
+      expect(error).toBeDefined();
+      if (error) {
+        expect(error._tag).toBe("ConfigError");
+        expect(error.message).toContain("Invalid API key format");
+      }
+    }
   });
 });

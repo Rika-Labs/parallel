@@ -60,6 +60,14 @@ describe("config", () => {
     expect(parsed.apiKey).toBe("test-key");
   });
 
+  test("saveConfigFile sets secure file permissions (0o600)", async () => {
+    const result = await Effect.runPromise(saveConfigFile({ apiKey: "test-key" }));
+    const stats = await fs.stat(result);
+    // biome-ignore lint/style/noNonNullAssertion: stats.mode is always defined for existing files
+    const permissions = stats.mode! & 0o777;
+    expect(permissions).toBe(0o600);
+  });
+
   test("loadConfigFile reads valid config", async () => {
     await Effect.runPromise(saveConfigFile({ apiKey: "test-key" }));
     const result = await Effect.runPromise(loadConfigFile);

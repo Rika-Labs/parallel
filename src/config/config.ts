@@ -34,6 +34,14 @@ export const saveConfigFile = (config: StoredConfig) =>
       await fs.mkdir(path.dirname(file), { recursive: true });
       await fs.writeFile(file, `${JSON.stringify(config)}\n`, { encoding: "utf8" });
       await fs.chmod(file, 0o600);
+
+      // Verify permissions were actually set
+      const stats = await fs.stat(file);
+      // biome-ignore lint/style/noNonNullAssertion: stats.mode is always defined for existing files
+      if ((stats.mode! & 0o777) !== 0o600) {
+        throw new Error("Failed to secure config file permissions");
+      }
+
       return file;
     },
     catch: (e) => (e instanceof Error ? new ConfigError(e.message) : new ConfigError(String(e))),

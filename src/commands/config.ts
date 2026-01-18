@@ -28,8 +28,11 @@ export function runConfigCommand(cmd: ConfigCommand) {
     }
     if (cmd.action === "get-key") {
       const config = yield* Effect.catchAll(loadConfigFile, () => Effect.succeed({}));
-      const key = resolveApiKey(config);
-      if (!key) throw new CliError("No API key set. Use PARALLEL_API_KEY or parallel config set-key <key>");
+      const key = yield* Effect.mapError(
+        resolveApiKey(config),
+        (e) => new CliError(e.message),
+      );
+      if (!key) return yield* Effect.fail(new CliError("No API key set. Use PARALLEL_API_KEY or parallel config set-key <key>"));
       process.stdout.write(`${key}\n`);
       return;
     }

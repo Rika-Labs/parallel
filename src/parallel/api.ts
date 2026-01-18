@@ -12,7 +12,10 @@ function getApiKey(): Effect.Effect<string, CliError> {
       loadConfigFile,
       () => Effect.succeed({}),
     );
-    const key = resolveApiKey(config);
+    const key = yield* Effect.mapError(
+      resolveApiKey(config),
+      (e) => new CliError(e.message),
+    );
     if (!key) {
       return yield* Effect.fail(new CliError("No API key set. Use PARALLEL_API_KEY or parallel config set-key <key>"));
     }

@@ -54,24 +54,26 @@ function validateApiKeyFormat(key: string): boolean {
   return /^[a-zA-Z0-9_-]{20,100}$/.test(key);
 }
 
-export function resolveApiKey(config: StoredConfig): string | undefined {
-  const envKey = process.env.PARALLEL_API_KEY;
-  if (envKey && envKey.trim().length > 0) {
-    const trimmed = envKey.trim();
-    if (!validateApiKeyFormat(trimmed)) {
-      throw new ConfigError("Invalid API key format. API keys must be 20-100 characters and contain only alphanumeric characters, underscores, and hyphens.");
+export function resolveApiKey(config: StoredConfig): Effect.Effect<string | undefined, ConfigError> {
+  return Effect.gen(function* () {
+    const envKey = process.env.PARALLEL_API_KEY;
+    if (envKey && envKey.trim().length > 0) {
+      const trimmed = envKey.trim();
+      if (!validateApiKeyFormat(trimmed)) {
+        return yield* Effect.fail(new ConfigError("Invalid API key format. API keys must be 20-100 characters and contain only alphanumeric characters, underscores, and hyphens."));
+      }
+      return trimmed;
     }
-    return trimmed;
-  }
-  const fileKey = config.apiKey;
-  if (fileKey && fileKey.trim().length > 0) {
-    const trimmed = fileKey.trim();
-    if (!validateApiKeyFormat(trimmed)) {
-      throw new ConfigError("Invalid API key format. API keys must be 20-100 characters and contain only alphanumeric characters, underscores, and hyphens.");
+    const fileKey = config.apiKey;
+    if (fileKey && fileKey.trim().length > 0) {
+      const trimmed = fileKey.trim();
+      if (!validateApiKeyFormat(trimmed)) {
+        return yield* Effect.fail(new ConfigError("Invalid API key format. API keys must be 20-100 characters and contain only alphanumeric characters, underscores, and hyphens."));
+      }
+      return trimmed;
     }
-    return trimmed;
-  }
-  return undefined;
+    return undefined;
+  });
 }
 
 export function getConfigPath(): string {
